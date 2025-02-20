@@ -1,0 +1,12 @@
+[package]
+org = "asmaj"
+name = "tool_consolidator"
+version = "@toml.version@"
+distribution = "2201.12.0"
+authors = ["Ballerina"]
+keywords = ["consolidator"]
+repository = "https://github.com/ballerina-platform/consolidator-tool"
+license = ["Apache-2.0"]
+
+[build-options]
+observabilityIncluded = true

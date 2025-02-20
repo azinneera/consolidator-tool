@@ -1,0 +1,26 @@
+NAME
+       ballerina-consolidate-create - Create a consolidator package for the provided services
+
+
+SYNOPSIS
+       bal consolidate create --services <comma-seperated-list-of-services>
+
+
+DESCRIPTION
+       Creates a new package that consolidates the provided services into a single package.
+       This command optionally accepts a name for the consolidator package.
+
+
+OPTIONS
+       --services
+           Comma separated list of services to consolidate.
+
+       --name (Optional)
+           Package name for the consolidator. Default package name is 'consolidator'.
+           If the provided name is not a valid package name, a valid name will be
+           derived from the provided name.
+
+
+EXAMPLES
+       Create a package to consolidate services 'myOrg/svc1' and 'myOrg/svc2'.
+           $ bal consolidate create --services myOrg/svc1,myOrg/svc2

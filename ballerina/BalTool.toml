@@ -1,0 +1,15 @@
+[tool]
+id = "consolidate"
+
+[[dependency]]
+path = "../native/build/libs/native-0.1.0-SNAPSHOT.jar"
+
+#[[dependency]]
+#path = "../native/lib/jackson-databind-2.18.2.jar"
+#
+#[[dependency]]
+#path = "../native/lib/jackson-core-2.18.2.jar"
+#
+#[[dependency]]
+#path = "../native/lib/jackson-dataformat-toml-2.18.2.jar"
+

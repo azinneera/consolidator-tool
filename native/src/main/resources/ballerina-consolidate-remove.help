@@ -1,0 +1,20 @@
+NAME
+       ballerina-consolidate-remove - Remove services from the existing consolidator package
+
+SYNOPSIS
+       bal consolidate remove --services <comma-seperated-list-of-services>
+
+
+DESCRIPTION
+       Removes the provided list of services from an existing consolidator package.
+       This command must be run from the <package-root> directory.
+
+
+OPTIONS
+       --services
+           Comma separated list of services to remove.
+
+
+EXAMPLES
+       Remove 'myOrg/svc1' from the consolidator package.
+           $ bal consolidate remove --services myOrg/svc1

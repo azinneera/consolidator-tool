@@ -1,0 +1,12 @@
+[package]
+org = "asmaj"
+name = "test_consolidate"
+version = "0.1.0"
+distribution = "2201.10.1"
+
+[build-options]
+observabilityIncluded = true
+
+[[tool.consolidate]]
+id = "consolidate1"
+options.services = ["myOrg/svc1", "myOrg/svc2", "myOrg/svc3"]
