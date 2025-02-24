@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
 public class Util {
     static final String TOOL_NAME = "consolidate";
 
+    private Util() {}
+
     static boolean validateServicesInput(String[] services, PrintStream errStream) throws IOException {
         if (services == null || services.length == 0) {
             CommandUtil.printError(errStream, "no services provided to generate the consolidator project",
@@ -107,8 +109,9 @@ public class Util {
         Files.writeString(balTomlPath, modifiedContent, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    public static String getHelpText() {
-        try (InputStream inputStream = Util.class.getClassLoader().getResourceAsStream("ballerina-consolidate.help");
+    public static String getHelpText(String commandName) {
+        try (InputStream inputStream = Util.class.getClassLoader()
+                .getResourceAsStream("ballerina-" + commandName + ".help");
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             return reader.lines().collect(Collectors.joining("\n"));
         } catch (IOException e) {

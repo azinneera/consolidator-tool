@@ -48,14 +48,14 @@ public class CodeGenerator implements CodeGeneratorTool {
             Files.createDirectories(toolContext.outputPath());
             Files.writeString(toolContext.outputPath().resolve("consolidate.bal"), stringBuilder);
 
-            String consolidated_mainBal = """
+            String consolidatedMainBal = """
                 import ballerina/log;
                 
                 public function main() {
                     log:printInfo("Started all the services");
                 }
                 """;
-            Files.writeString(toolContext.outputPath().resolve("consolidate_main.bal"), consolidated_mainBal);
+            Files.writeString(toolContext.outputPath().resolve("consolidate_main.bal"), consolidatedMainBal);
         } catch (IOException e) {
             DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
                 "BTCE001", "Error occurred while generating code", DiagnosticSeverity.ERROR);

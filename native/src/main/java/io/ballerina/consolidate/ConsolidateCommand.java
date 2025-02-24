@@ -28,19 +28,21 @@ import java.io.PrintStream;
 )
 public class ConsolidateCommand implements BLauncherCmd {
     private final PrintStream printStream;
-    private final PrintStream errStream;
 
     @CommandLine.Option(names = {"--help"})
     private boolean help;
 
     public ConsolidateCommand() {
         this.printStream = System.out;
-        this.errStream = System.err;
+    }
+
+    public ConsolidateCommand(PrintStream printStream) {
+        this.printStream = printStream;
     }
 
     @Override
     public void execute() {
-        printStream.println(Util.getHelpText());
+        printStream.println(Util.getHelpText(getName()));
     }
 
     @Override

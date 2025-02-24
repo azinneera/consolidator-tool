@@ -15,19 +15,67 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+
+plugins {
+    id 'checkstyle'
+    id 'com.github.spotbugs'
+}
+
 description = "Ballerina - Consolidator native code"
 
 configurations.all {
     resolutionStrategy.preferProjectModules()
 }
 
+checkstyle {
+    toolVersion = "${checkstylePluginVersion}"
+}
+
+tasks.withType(Checkstyle).configureEach {
+    dependsOn ":build-config:checkstyle:downloadFile"
+    configFile = file("${rootProject.projectDir}/build-config/checkstyle/build/checkstyle.xml")
+    exclude '**/module-info.java'
+}
+
+spotbugs {
+    toolVersion = "${spotbugsToolVersion}"
+    excludeFilter = file("spotbugs-exclude.xml")
+}
+
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+spotbugsMain {
+    jvmArgs = [ '-Xmx2048m' ]
+    def classLoader = plugins["com.github.spotbugs"].class.classLoader
+    def SpotBugsConfidence = classLoader.findLoadedClass("com.github.spotbugs.snom.Confidence")
+    def SpotBugsEffort = classLoader.findLoadedClass("com.github.spotbugs.snom.Effort")
+    effort = SpotBugsEffort.MAX
+    reportLevel = SpotBugsConfidence.LOW
+    it.reports {
+        xml.required = false
+        html.required = true
+    }
+    def excludeFile = file('spotbugs-exclude.xml')
+    if(excludeFile.exists()) {
+        it.excludeFilter = excludeFile
+    }
+}
+
 dependencies {
+    checkstyle project(':build-config:checkstyle')
+    checkstyle "com.puppycrawl.tools:checkstyle:${checkstylePluginVersion}"
+
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
     implementation "org.ballerinalang:toml-parser:${ballerinaLangVersion}"
-    implementation 'info.picocli:picocli:4.0.1'
-    testImplementation 'org.testng:testng:7.10.2'
+    implementation "info.picocli:picocli:${picocliVersion}"
+    testImplementation "org.testng:testng:${testngVersion}"
 }
 
 def distributionBinPath =  new File(project.projectDir.absolutePath).parent + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"

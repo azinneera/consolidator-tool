@@ -15,7 +15,6 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-
 import org.apache.tools.ant.taskdefs.condition.Os
 
 description = 'Ballerina - Consolidator Tool'
@@ -88,12 +87,7 @@ tasks.named('clean', Delete) {
 }
 
 tasks.named('build') {
-    dependsOn ":native:build"
     dependsOn updateTomlFiles
     dependsOn commitTomlFiles
     dependsOn ballerinaBuild
 }
-
-//ballerinaBuild.dependsOn ":native:build"
-//ballerinaBuild.dependsOn updateTomlFiles
-//commitTomlFiles.dependsOn updateTomlFiles

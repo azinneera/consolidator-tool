@@ -4,19 +4,17 @@ plugins {
 
 rootProject.name = 'consolidator-tool'
 
-include ':checkstyle'
-include ':ballerina'
-include ':native'
-
-project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
-project(':ballerina').projectDir = file('ballerina')
-project(':native').projectDir = file('native')
-
 gradleEnterprise {
     buildScan {
         termsOfServiceUrl = 'https://gradle.com/terms-of-service'
         termsOfServiceAgree = 'yes'
     }
 }
-include 'ballerina'
 
+include ':ballerina'
+include ':native'
+include ':build-config:checkstyle'
+
+project(':ballerina').projectDir = file('ballerina')
+project(':native').projectDir = file('native')
+project(':build-config:checkstyle').projectDir = file('build-config/checkstyle')

@@ -1,0 +1,8 @@
+Generating the consolidator project for
+	myorg/service1
+	myorg/service2
+
+Successfully created the consolidator project at 'build/consolidator'.
+
+What's next?
+	 Execute 'bal build build/consolidator' to generate the executable.

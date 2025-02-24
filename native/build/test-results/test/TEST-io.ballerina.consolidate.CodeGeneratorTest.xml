@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.ballerina.consolidate.CodeGeneratorTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-02-20T06:57:52" hostname="asmaj.local" time="0.398">
-  <properties/>
-  <testcase name="testValidToolUsage" classname="io.ballerina.consolidate.CodeGeneratorTest" time="0.398"/>
-  <system-out><![CDATA[		Running  build tool: consolidate1
-]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
