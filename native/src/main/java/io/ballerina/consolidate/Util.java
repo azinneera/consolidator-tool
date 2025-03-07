@@ -48,15 +48,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Util {
-    static final String TOOL_NAME = "consolidate";
+    static final String TOOL_NAME = "consolidate-packages";
+    public static final String BALLERINA_TOML = "Ballerina.toml";
 
     private Util() {}
 
-    static boolean validateServicesInput(String[] services, PrintStream errStream) throws IOException {
+    static boolean isInvalidServicesInput(String[] services, PrintStream errStream) throws IOException {
         if (services == null || services.length == 0) {
             CommandUtil.printError(errStream, "no services provided to generate the consolidator project",
-                    "bal consolidate --services myOrg/svc1,myOrg/svc2", false);
-            return false;
+                    "bal consolidate-packages myOrg/svc1,myOrg/svc2", false);
+            return true;
         }
 
         Schema schema = Schema.from(FileUtils.readSchema(TOOL_NAME, Util.class.getClassLoader()));
@@ -119,12 +120,13 @@ public class Util {
         }
     }
 
-    public static void validatePackageName(String packageName, PrintStream outStream) {
+    public static String validatePackageName(String packageName, PrintStream outStream) {
         if (!ProjectUtils.validatePackageName(packageName)) {
             packageName = ProjectUtils.guessPkgName(packageName, "default");
             outStream.println("Package name is derived as '" + packageName
                     + "'. Edit the Ballerina.toml to change it.");
             outStream.println();
         }
+        return packageName;
     }
 }

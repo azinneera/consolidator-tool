@@ -31,43 +31,55 @@ import io.ballerina.tools.text.TextRange;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
 
 @ToolConfig(name = Util.TOOL_NAME)
 public class CodeGenerator implements CodeGeneratorTool {
 
-
     @Override
     public void execute(ToolContext toolContext) {
         toolContext.println("Running  build tool: " + toolContext.toolId());
-        ArrayList<String> services = (ArrayList<String>) toolContext.options().get("services").value();
+
+        if (!toolContext.options().containsKey("services")) {
+            DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
+                "BTCE001", "No services provided in 'options' to generate the consolidator package",
+                    DiagnosticSeverity.ERROR);
+            toolContext.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, new NullLocation()));
+            return;
+        }
+
+        List<?> services = (ArrayList<?>) toolContext.options().get("services").value();
         StringBuilder stringBuilder = new StringBuilder();
-        for (String service : services) {
+        for (Object serviceObj : services) {
+            String service = (String) serviceObj;
             stringBuilder.append("import ").append(service).append(" as _;\n");
         }
         try {
             Files.createDirectories(toolContext.outputPath());
-            Files.writeString(toolContext.outputPath().resolve("consolidate.bal"), stringBuilder);
+            Files.writeString(toolContext.outputPath().resolve("consolidator.bal"), stringBuilder);
 
-            String consolidatedMainBal = """
+            String consolidatorMainBal = """
                 import ballerina/log;
                 
                 public function main() {
-                    log:printInfo("Started all the services");
+                    log:printInfo("Started all services");
                 }
                 """;
-            Files.writeString(toolContext.outputPath().resolve("consolidate_main.bal"), consolidatedMainBal);
+            Files.writeString(toolContext.outputPath().resolve("consolidator_main.bal"), consolidatorMainBal);
         } catch (IOException e) {
             DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
-                "BTCE001", "Error occurred while generating code", DiagnosticSeverity.ERROR);
+                "BTCE002", "Error occurred while generating code", DiagnosticSeverity.ERROR);
             toolContext.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, new NullLocation()));
         }
     }
 
+    // TODO: Remove the null location once the location is supported in toolContext#options
     private static class NullLocation implements Location {
+
         @Override
         public LineRange lineRange() {
             LinePosition from = LinePosition.from(0, 0);
-            return LineRange.from("openAPI sample build tool", from, from);
+            return LineRange.from(Util.BALLERINA_TOML, from, from);
         }
 
         @Override

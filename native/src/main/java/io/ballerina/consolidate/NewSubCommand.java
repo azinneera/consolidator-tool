@@ -30,40 +30,40 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.StringJoiner;
 
-@CommandLine.Command(name = "create",
-        description = "Creates a Ballerina consolidator project for the given services")
-public class CreateSubCommand implements BLauncherCmd {
+@CommandLine.Command(name = "new", description = "Creates a new Ballerina package to consolidate the given services")
+public class NewSubCommand implements BLauncherCmd {
     private final PrintStream outStream;
     private final PrintStream errStream;
     boolean exit;
-
-    @CommandLine.Option(names = {"--services"}, split = ",", defaultValue = "", required = true)
     private String[] services;
 
-    @CommandLine.Option(names = {"--project-path"}, defaultValue = "consolidator")
-    private String projectPath;
+    @CommandLine.Parameters (arity = "1")
+    private String servicesStr;
+
+    @CommandLine.Option(names = {"--package-path"}, defaultValue = "consolidator")
+    private String packagePath;
 
     @CommandLine.Option(names = {"--help"})
     private boolean help;
 
-    public CreateSubCommand() {
+    public NewSubCommand() {
         this.outStream = System.out;
         this.errStream = System.err;
         this.exit = true;
         CommandUtil.initJarFs();
     }
 
-    public CreateSubCommand(PrintStream printStream) {
+    public NewSubCommand(PrintStream printStream) {
         this.outStream = printStream;
         this.errStream = printStream;
         help = true;
     }
 
-    public CreateSubCommand(PrintStream printStream, String projectPath, String[] services, boolean exit) {
+    public NewSubCommand(PrintStream printStream, String packagePath, String servicesStr, boolean exit) {
         this.outStream = printStream;
         this.errStream = printStream;
-        this.projectPath = projectPath;
-        this.services = services;
+        this.packagePath = packagePath;
+        this.servicesStr = servicesStr;
         this.exit = exit;
         CommandUtil.initJarFs();
     }
@@ -74,43 +74,50 @@ public class CreateSubCommand implements BLauncherCmd {
             outStream.println(Util.getHelpText(getName()));
             return;
         }
-        Util.validatePackageName(Paths.get(projectPath).getFileName().toString(), outStream);
         try {
-            if (!Util.validateServicesInput(services, errStream)) {
+            services = servicesStr.split(",");
+        } catch (Exception e) {
+            CommandUtil.printError(this.errStream, "Invalid services provided", null, false);
+            CommandUtil.exitError(exit);
+            return;
+        }
+        try {
+            if (!Util.isInvalidServicesInput(services, errStream)) {
                 CommandUtil.exitError(exit);
                 return;
             }
-            createProject(Paths.get(projectPath));
+            createProject(Paths.get(packagePath));
         } catch (IOException | URISyntaxException e) {
             CommandUtil.printError(this.errStream, e.getMessage(), null, false);
             CommandUtil.exitError(exit);
         }
     }
 
-    private void createProject(Path packageDir) throws IOException, URISyntaxException {
-        outStream.println("Generating the consolidator project for");
+    private void createProject(Path packagePath) throws IOException, URISyntaxException {
+        outStream.println("Generating the consolidator package for");
         for (String service : services) {
             outStream.println("\t" + service);
         }
-        Files.createDirectories(packageDir);
-        CommandUtil.initPackageByTemplate(packageDir, projectPath, "default", true);
+        Files.createDirectories(packagePath);
+        String packageName = Util.validatePackageName(packagePath.getFileName().toString(), outStream);
+        CommandUtil.initPackageByTemplate(packagePath, packageName, "default", true);
 
         StringJoiner options = new StringJoiner(",");
         for (String service : services) {
             options.add("\"" + service + "\"");
         }
-        String toolEntry = "\n[[tool.consolidator]]\n" + "id = " + "\"consolidate1\"\n" +
+        String toolEntry = "\n[[tool." + Util.TOOL_NAME + "]]\n" + "id = " + "\"consolidatePackages1\"\n" +
                 "options.services = [" +
                 options + "]";
 
-        Files.writeString(packageDir.resolve("Ballerina.toml"), toolEntry, StandardOpenOption.APPEND);
-        outStream.println("\nSuccessfully created the consolidator project at '" + projectPath + "'.\n");
-        outStream.println("What's next?\n\t Execute 'bal build " + projectPath + "' to generate the executable.");
+        Files.writeString(packagePath.resolve(Util.BALLERINA_TOML), toolEntry, StandardOpenOption.APPEND);
+        outStream.println("\nSuccessfully created the consolidator package at '" + this.packagePath + "'.\n");
+        outStream.println("What's next?\n\t Execute 'bal build " + this.packagePath + "' to generate the executable.");
     }
 
     @Override
     public String getName() {
-        return "consolidate-create";
+        return Util.TOOL_NAME + "-new";
     }
 
     @Override

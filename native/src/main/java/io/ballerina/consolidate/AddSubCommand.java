@@ -38,8 +38,10 @@ public class AddSubCommand implements BLauncherCmd {
     private final PrintStream printStream;
     private final PrintStream errStream;
 
-    @CommandLine.Option(names = {"--services"}, split = ",", defaultValue = "", required = true)
     private String[] services;
+
+    @CommandLine.Parameters (arity = "1")
+    private String servicesStr;
 
     @CommandLine.Option(names = {"--help"})
     private boolean help;
@@ -52,7 +54,14 @@ public class AddSubCommand implements BLauncherCmd {
     @Override
     public void execute() {
         try {
-            if (!Util.validateServicesInput(services, errStream)) {
+            if (Util.isInvalidServicesInput(services, errStream)) {
+                CommandUtil.exitError(true);
+                return;
+            }
+            try {
+                services = servicesStr.split(",");
+            } catch (Exception e) {
+                CommandUtil.printError(this.errStream, "Invalid services provided", null, false);
                 CommandUtil.exitError(true);
                 return;
             }
@@ -64,7 +73,7 @@ public class AddSubCommand implements BLauncherCmd {
     }
 
     private void addServicesToProject(String[] services) throws IOException {
-        printStream.println("Updating the consolidator project to add");
+        printStream.println("Updating the consolidator package to add");
         for (String service : services) {
             printStream.println("\t" + service);
         }
@@ -72,20 +81,20 @@ public class AddSubCommand implements BLauncherCmd {
         try {
             BuildProject buildProject = BuildProject.load(Paths.get(System.getProperty("user.dir")));
             if (buildProject.currentPackage().ballerinaToml().isEmpty()) {
-                CommandUtil.printError(this.errStream, "Invalid project provided",
+                CommandUtil.printError(this.errStream, "Invalid package provided",
                         null, false);
                 CommandUtil.exitError(true);
             }
             Set<String> allServices = new HashSet<>();
             for (PackageManifest.Tool tool : buildProject.currentPackage().manifest().tools()) {
-                if ("consolidator".equals(tool.type().value())) {
+                if (Util.TOOL_NAME.equals(tool.type().value())) {
                     Set<String> existingServices = Util.getServices(tool.optionsTable());
                     allServices.addAll(existingServices);
                     break;
                 }
             }
             Collections.addAll(allServices, services);
-            Path balTomlPath = buildProject.sourceRoot().resolve("Ballerina.toml");
+            Path balTomlPath = buildProject.sourceRoot().resolve(Util.BALLERINA_TOML);
             Util.replaceServicesArrayInToml(allServices, balTomlPath);
 
         } catch (ProjectException e) {
@@ -93,12 +102,12 @@ public class AddSubCommand implements BLauncherCmd {
                     null, false);
             CommandUtil.exitError(true);
         }
-        printStream.println("\nSuccessfully added the services to the project.\n");
+        printStream.println("\nSuccessfully added the services to the package.\n");
         printStream.println("What's next? \n\t Execute 'bal build' to generate the executable.");
     }
     @Override
     public String getName() {
-        return "";
+        return Util.TOOL_NAME + "-add";
     }
 
     @Override

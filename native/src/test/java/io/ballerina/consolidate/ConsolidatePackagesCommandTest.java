@@ -27,14 +27,18 @@ import static io.ballerina.consolidate.TestUtil.printStream;
 import static io.ballerina.consolidate.TestUtil.readOutput;
 import static io.ballerina.consolidate.TestUtil.testResources;
 
-public class ConsolidateCommandTest {
+public class ConsolidatePackagesCommandTest {
 
     @Test
     public void testHelp() throws IOException {
-        ConsolidateCommand consolidateCommand = new ConsolidateCommand(printStream);
-        consolidateCommand.execute();
+        ConsolidatePackagesCommand consolidatePackagesCommand = new ConsolidatePackagesCommand(printStream);
+        try {
+            consolidatePackagesCommand.execute();
+        } catch (Exception e) {
+            Assert.fail("Error occurred while executing the command");
+        }
         String buildLog = readOutput();
         String expected = getOutput(testResources.resolve("command-outputs"), "help-main.txt");
-        Assert.assertTrue(buildLog.contains(expected));
+        Assert.assertTrue(buildLog.contains(expected), "Help text mismatched");
     }
 }

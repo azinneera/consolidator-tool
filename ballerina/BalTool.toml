@@ -1,5 +1,5 @@
 [tool]
-id = "consolidate"
+id = "consolidate-packages"
 
 [[dependency]]
 path = "../native/build/libs/native-0.1.0-SNAPSHOT.jar"

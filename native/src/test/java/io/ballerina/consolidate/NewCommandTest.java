@@ -28,35 +28,35 @@ import static io.ballerina.consolidate.TestUtil.printStream;
 import static io.ballerina.consolidate.TestUtil.readOutput;
 import static io.ballerina.consolidate.TestUtil.testResources;
 
-public class CreateCommandTest {
+public class NewCommandTest {
 
     @Test
     public void testHelp() throws IOException {
-        CreateSubCommand createSubCommand = new CreateSubCommand(printStream);
-        createSubCommand.execute();
+        NewSubCommand newSubCommand = new NewSubCommand(printStream);
+        newSubCommand.execute();
         String buildLog = readOutput();
-        String expected = getOutput(testResources.resolve("command-outputs"), "help-create.txt");
-        Assert.assertTrue(buildLog.contains(expected));
+        String expected = getOutput(testResources.resolve("command-outputs"), "help-new.txt");
+        Assert.assertTrue(buildLog.contains(expected), "Help text mismatched");
     }
 
     @Test
     public void testCreate() throws IOException {
-        String[] services = new String[]{"myorg/service1", "myorg/service2"};
+        String services = "myorg/service1,myorg/service2";
         String projectPath = "build/consolidator";
-        CreateSubCommand createSubCommand = new CreateSubCommand(printStream, projectPath, services, false);
-        createSubCommand.execute();
+        NewSubCommand newSubCommand = new NewSubCommand(printStream, projectPath, services, false);
+        newSubCommand.execute();
         String buildLog = readOutput();
-        String expected = getOutput(testResources.resolve("command-outputs"), "create.txt");
-        Assert.assertTrue(buildLog.contains(expected));
+        String expected = getOutput(testResources.resolve("command-outputs"), "new.txt");
+        Assert.assertTrue(buildLog.contains(expected), "Actual output:" + buildLog);
 //        balBuildAfter(projectPath);
     }
 
     @Test
     public void testCreateWithInvalidSvcValues() throws IOException {
-        String[] services = new String[]{"service1", "service2"};
+        String services = "service1,service2";
         String projectPath = "build/consolidator";
-        CreateSubCommand createSubCommand = new CreateSubCommand(printStream, projectPath, services, false);
-        createSubCommand.execute();
+        NewSubCommand newSubCommand = new NewSubCommand(printStream, projectPath, services, false);
+        newSubCommand.execute();
         String buildLog = readOutput();
         String expected = getOutput(testResources.resolve("command-outputs"), "create-invalid-svc.txt");
         Assert.assertTrue(buildLog.contains(expected));

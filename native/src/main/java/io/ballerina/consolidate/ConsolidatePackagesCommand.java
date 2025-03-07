@@ -23,20 +23,20 @@ import picocli.CommandLine;
 import java.io.PrintStream;
 
 @CommandLine.Command(name = Util.TOOL_NAME,
-        subcommands = {CreateSubCommand.class, AddSubCommand.class, RemoveSubCommand.class},
-        description = "Generates a Ballerina consolidator project for the given services"
+        subcommands = {NewSubCommand.class, AddSubCommand.class, RemoveSubCommand.class},
+        description = "Generates a Ballerina consolidator project for the given package"
 )
-public class ConsolidateCommand implements BLauncherCmd {
+public class ConsolidatePackagesCommand implements BLauncherCmd {
     private final PrintStream printStream;
 
     @CommandLine.Option(names = {"--help"})
     private boolean help;
 
-    public ConsolidateCommand() {
+    public ConsolidatePackagesCommand() {
         this.printStream = System.out;
     }
 
-    public ConsolidateCommand(PrintStream printStream) {
+    public ConsolidatePackagesCommand(PrintStream printStream) {
         this.printStream = printStream;
     }
 

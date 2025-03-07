@@ -1,11 +1,11 @@
 [package]
 org = "asmaj"
-name = "tool_consolidator"
+name = "tool_consolidate_package"
 version = "0.1.0"
 distribution = "2201.12.0"
 authors = ["Ballerina"]
-keywords = ["consolidator"]
-repository = "https://github.com/ballerina-platform/consolidator-tool"
+keywords = ["consolidate-package", "consolidate", "consolidator"]
+repository = "https://github.com/ballerina-platform/consolidate-packages-tool"
 license = ["Apache-2.0"]
 
 [build-options]
