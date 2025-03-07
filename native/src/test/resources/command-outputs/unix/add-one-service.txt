@@ -1,0 +1,7 @@
+Updating the consolidator package to add
+	myorg/service3
+
+Successfully added the services to the package.
+
+What's next?
+	 Execute 'bal build' to generate the executable.

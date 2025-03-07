@@ -17,10 +17,13 @@
  */
 package io.ballerina.consolidate;
 
+import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,19 +36,16 @@ import static io.ballerina.cli.utils.OsUtils.isWindows;
 public class TestUtil {
 
     static Path testResources;
-    static ByteArrayOutputStream console;
-    static PrintStream printStream;
-    static String balDist = "../build/target/extracted-distributions/" +
-            "jballerina-tools-zip/jballerina-tools-2201.11.0";
+    static final String BALLERINA_HOME = "ballerina.home";
+    static final String USER_DIR = "user.dir";
+    private static ByteArrayOutputStream console;
+    private static PrintStream printStream;
 
     @BeforeSuite
     public void beforeSuite() throws IOException {
         System.setProperty("java.command", "java");
-        System.setProperty("ballerina.home", Paths.get(balDist).toAbsolutePath().toString());
         testResources = Paths.get("src/test/resources/");
         copyTestResources(Paths.get("build/test-consolidate"));
-        console = new ByteArrayOutputStream();
-        printStream = new PrintStream(console);
     }
 
     private void copyTestResources(Path target) throws IOException {
@@ -72,16 +72,28 @@ public class TestUtil {
         }
     }
 
-    static String readOutput() throws IOException {
-        String output;
-        output = console.toString();
+    static String readOutput(ByteArrayOutputStream console) throws IOException {
+        String output = console.toString();
         console.close();
-        console = new ByteArrayOutputStream();
-        printStream = new PrintStream(console);
-
         PrintStream out = System.out;
         out.println(output);
-
         return output;
+    }
+
+     static void balBuildAfter(String projectPath, PrintStream printStream) throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                System.getProperty(BALLERINA_HOME) + "/bin/bal", "build", projectPath);
+         processBuilder.redirectErrorStream(true);
+         Process process = processBuilder.start();
+         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+         String line;
+         while ((line = reader.readLine()) != null) {
+             printStream.println(line);
+         }
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            Assert.fail("bal build failed with exit code: " + exitCode);
+        }
+
     }
 }

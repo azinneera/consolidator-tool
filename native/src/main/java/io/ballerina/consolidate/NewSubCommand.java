@@ -28,89 +28,105 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 
-@CommandLine.Command(name = "create",
-        description = "Creates a Ballerina consolidator project for the given services")
-public class CreateSubCommand implements BLauncherCmd {
+import static io.ballerina.consolidate.Util.HYPHEN;
+import static io.ballerina.consolidate.Util.NEW;
+import static io.ballerina.consolidate.Util.TOOL_NAME;
+
+@CommandLine.Command(name = NEW, description = "Creates a new Ballerina package to consolidate the given services")
+public class NewSubCommand implements BLauncherCmd {
     private final PrintStream outStream;
     private final PrintStream errStream;
     boolean exit;
 
-    @CommandLine.Option(names = {"--services"}, split = ",", defaultValue = "", required = true)
-    private String[] services;
+    @CommandLine.Parameters (arity = "0..1")
+    private String servicesStr;
 
-    @CommandLine.Option(names = {"--project-path"}, defaultValue = "consolidator")
-    private String projectPath;
+    @CommandLine.Option(names = {"--package-path"}, defaultValue = "consolidator")
+    private String packagePath;
 
     @CommandLine.Option(names = {"--help"})
     private boolean help;
 
-    public CreateSubCommand() {
+    public NewSubCommand() {
         this.outStream = System.out;
         this.errStream = System.err;
         this.exit = true;
         CommandUtil.initJarFs();
     }
 
-    public CreateSubCommand(PrintStream printStream) {
+    public NewSubCommand(PrintStream printStream) {
         this.outStream = printStream;
         this.errStream = printStream;
-        help = true;
+        this.help = true;
     }
 
-    public CreateSubCommand(PrintStream printStream, String projectPath, String[] services, boolean exit) {
+    public NewSubCommand(PrintStream printStream, String packagePath, String servicesStr, boolean exit) {
         this.outStream = printStream;
         this.errStream = printStream;
-        this.projectPath = projectPath;
-        this.services = services;
+        this.packagePath = packagePath;
+        this.servicesStr = servicesStr;
         this.exit = exit;
         CommandUtil.initJarFs();
     }
 
     @Override
     public void execute() {
-        if (help) {
+        if (help || servicesStr == null) {
             outStream.println(Util.getHelpText(getName()));
             return;
         }
-        Util.validatePackageName(Paths.get(projectPath).getFileName().toString(), outStream);
+        Set<String> services;
         try {
-            if (!Util.validateServicesInput(services, errStream)) {
-                CommandUtil.exitError(exit);
+            Optional<Set<String>> optionalList = Util.getServices(servicesStr, NEW, errStream);
+            if (optionalList.isEmpty()) {
+                CommandUtil.exitError(this.exit);
                 return;
             }
-            createProject(Paths.get(projectPath));
+            services = optionalList.get();
+        } catch (Exception e) {
+            CommandUtil.printError(this.errStream, "Failed to extract the services.", null, false);
+            CommandUtil.exitError(exit);
+            return;
+        }
+
+        try {
+            createProject(Paths.get(packagePath), services);
         } catch (IOException | URISyntaxException e) {
-            CommandUtil.printError(this.errStream, e.getMessage(), null, false);
+            CommandUtil.printError(this.errStream, "Package creation failed, reason: " + e.getMessage(),
+                    null, false);
             CommandUtil.exitError(exit);
         }
     }
 
-    private void createProject(Path packageDir) throws IOException, URISyntaxException {
-        outStream.println("Generating the consolidator project for");
+    private void createProject(Path packagePath, Set<String> services) throws IOException, URISyntaxException {
+        outStream.println("Generating the consolidator package for");
         for (String service : services) {
             outStream.println("\t" + service);
         }
-        Files.createDirectories(packageDir);
-        CommandUtil.initPackageByTemplate(packageDir, projectPath, "default", true);
+        Files.createDirectories(packagePath);
+        String packageName = Util.validatePackageName(packagePath.getFileName().toString(), outStream);
+        CommandUtil.initPackageByTemplate(packagePath, packageName, "default", true);
 
         StringJoiner options = new StringJoiner(",");
         for (String service : services) {
             options.add("\"" + service + "\"");
         }
-        String toolEntry = "\n[[tool.consolidator]]\n" + "id = " + "\"consolidate1\"\n" +
+        String toolEntry = "\n[[tool." + TOOL_NAME + "]]\n" + "id = " + "\"consolidatePackages1\"\n" +
                 "options.services = [" +
                 options + "]";
 
-        Files.writeString(packageDir.resolve("Ballerina.toml"), toolEntry, StandardOpenOption.APPEND);
-        outStream.println("\nSuccessfully created the consolidator project at '" + projectPath + "'.\n");
-        outStream.println("What's next?\n\t Execute 'bal build " + projectPath + "' to generate the executable.");
+        Files.writeString(packagePath.resolve(Util.BALLERINA_TOML), toolEntry, StandardOpenOption.APPEND);
+        outStream.println("\nSuccessfully created the consolidator package at '" + this.packagePath + "'.\n");
+        outStream.println("What's next?\n\t Execute 'bal build " + this.packagePath + "' to generate the executable.");
     }
 
     @Override
     public String getName() {
-        return "consolidate-create";
+        return TOOL_NAME + HYPHEN + NEW;
     }
 
     @Override

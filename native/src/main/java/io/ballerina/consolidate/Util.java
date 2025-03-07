@@ -40,7 +40,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -48,17 +50,22 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Util {
-    static final String TOOL_NAME = "consolidate";
+    static final String TOOL_NAME = "consolidate-packages";
+    static final String BALLERINA_TOML = "Ballerina.toml";
+    static final String NEW = "new";
+    static final String ADD = "add";
+    static final String REMOVE = "remove";
+    static final String HYPHEN = "-";
 
     private Util() {}
 
-    static boolean validateServicesInput(String[] services, PrintStream errStream) throws IOException {
-        if (services == null || services.length == 0) {
-            CommandUtil.printError(errStream, "no services provided to generate the consolidator project",
-                    "bal consolidate --services myOrg/svc1,myOrg/svc2", false);
-            return false;
+    static Optional<Set<String>> getServices(String services, String subCmd, PrintStream errStream)
+            throws IOException {
+        if (services == null || services.isEmpty()) {
+            CommandUtil.printError(errStream, "no services provided", getUsage(subCmd), false);
+            return Optional.empty();
         }
-
+        Set<String> serviceArray =  new LinkedHashSet<>(Arrays.asList(services.split(","))); ;
         Schema schema = Schema.from(FileUtils.readSchema(TOOL_NAME, Util.class.getClassLoader()));
         ArraySchema properties = (ArraySchema) schema.properties().get("services");
         Optional<String> optionalPattern = ((StringSchema) properties.items()).pattern();
@@ -66,14 +73,14 @@ public class Util {
             throw new IllegalStateException("unable to find the pattern for services in the tool schema");
         }
         boolean isValid = true;
-        for (String service : services) {
+        for (String service : serviceArray) {
             if (!service.matches(optionalPattern.get())) {
                 String msg = properties.items().message().get("pattern");
                 CommandUtil.printError(errStream, "'" + service + "': " + msg, null, false);
                 isValid = false;
             }
         }
-        return isValid;
+        return isValid ? Optional.of(serviceArray) : Optional.empty();
     }
 
      static Set<String> getServices(TomlTableNode tomlTableNode) {
@@ -109,7 +116,7 @@ public class Util {
         Files.writeString(balTomlPath, modifiedContent, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    public static String getHelpText(String commandName) {
+    static String getHelpText(String commandName) {
         try (InputStream inputStream = Util.class.getClassLoader()
                 .getResourceAsStream("ballerina-" + commandName + ".help");
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -119,12 +126,17 @@ public class Util {
         }
     }
 
-    public static void validatePackageName(String packageName, PrintStream outStream) {
+    static String validatePackageName(String packageName, PrintStream outStream) {
         if (!ProjectUtils.validatePackageName(packageName)) {
             packageName = ProjectUtils.guessPkgName(packageName, "default");
             outStream.println("Package name is derived as '" + packageName
                     + "'. Edit the Ballerina.toml to change it.");
             outStream.println();
         }
+        return packageName;
+    }
+
+    static String getUsage(String subCmd) {
+        return "Run 'bal consolidate-package " + subCmd + "--help' for usage.";
     }
 }

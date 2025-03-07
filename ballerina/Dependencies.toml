@@ -5,13 +5,13 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.11.0"
+distribution-version = "2201.12.0-20250228-201300-8d411a0f"
 
 [[package]]
 org = "asmaj"
-name = "tool_consolidator"
+name = "tool_consolidate_package"
 version = "0.1.0"
 modules = [
-	{org = "asmaj", packageName = "tool_consolidator", moduleName = "tool_consolidator"}
+	{org = "asmaj", packageName = "tool_consolidate_package", moduleName = "tool_consolidate_package"}
 ]
 

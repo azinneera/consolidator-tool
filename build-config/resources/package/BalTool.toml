@@ -1,5 +1,5 @@
 [tool]
-id = "consolidate"
+id = "consolidate-packages"
 
 [[dependency]]
 path = "../native/build/libs/native-@toml.version@.jar"

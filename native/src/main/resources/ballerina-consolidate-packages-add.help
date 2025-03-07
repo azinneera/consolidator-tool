@@ -1,0 +1,14 @@
+NAME
+       ballerina-consolidate-packages-add - Add new services to the existing consolidator package
+
+SYNOPSIS
+       bal consolidate-packages add <comma-separated-list-of-services>
+
+
+DESCRIPTION
+       Adds the provided list of services to an existing consolidator package.
+       This command must be run from the <package-root> directory.
+
+EXAMPLES
+       Add 'myOrg/svc3' and 'myOrg/svc4' services to the consolidator package.
+           $ bal consolidate-packages add myOrg/svc3,myOrg/svc4

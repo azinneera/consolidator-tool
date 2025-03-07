@@ -28,77 +28,108 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+
+import static io.ballerina.consolidate.Util.ADD;
+import static io.ballerina.consolidate.Util.HYPHEN;
 
 @CommandLine.Command(name = "add",
         description = "Adds a Ballerina consolidator project for the given services")
 public class AddSubCommand implements BLauncherCmd {
-    private final PrintStream printStream;
+    private final PrintStream outStream;
     private final PrintStream errStream;
+    boolean exit;
 
-    @CommandLine.Option(names = {"--services"}, split = ",", defaultValue = "", required = true)
-    private String[] services;
+    @CommandLine.Parameters (arity = "0..1")
+    private String servicesStr;
 
     @CommandLine.Option(names = {"--help"})
     private boolean help;
 
     public AddSubCommand() {
-        this.printStream = System.out;
+        this.outStream = System.out;
         this.errStream = System.err;
+    }
+
+    public AddSubCommand(PrintStream printStream) {
+        this.outStream = printStream;
+        this.errStream = printStream;
+        this.help = true;
+    }
+
+    public AddSubCommand(PrintStream printStream, String servicesStr, boolean exit) {
+        this.outStream = printStream;
+        this.errStream = printStream;
+        this.servicesStr = servicesStr;
+        this.exit = exit;
+        CommandUtil.initJarFs();
     }
 
     @Override
     public void execute() {
+        if (help || servicesStr == null) {
+            outStream.println(Util.getHelpText(getName()));
+            return;
+        }
+
+        Optional<Set<String>> services;
         try {
-            if (!Util.validateServicesInput(services, errStream)) {
-                CommandUtil.exitError(true);
+            services = Util.getServices(servicesStr, ADD, errStream);
+            if (services.isEmpty()) {
+                CommandUtil.exitError(this.exit);
                 return;
             }
-            addServicesToProject(services);
+        } catch (Exception e) {
+            CommandUtil.printError(this.errStream, "Failed to extract the services. ", null, false);
+            CommandUtil.exitError(this.exit);
+            return;
+        }
+        try {
+            addServicesToProject(services.get());
         } catch (IOException e) {
             CommandUtil.printError(this.errStream, e.getMessage(), null, false);
-            CommandUtil.exitError(true);
+            CommandUtil.exitError(this.exit);
         }
     }
 
-    private void addServicesToProject(String[] services) throws IOException {
-        printStream.println("Updating the consolidator project to add");
+    private void addServicesToProject(Set<String> services) throws IOException {
+        outStream.println("Updating the consolidator package to add");
         for (String service : services) {
-            printStream.println("\t" + service);
+            outStream.println("\t" + service);
         }
 
         try {
             BuildProject buildProject = BuildProject.load(Paths.get(System.getProperty("user.dir")));
             if (buildProject.currentPackage().ballerinaToml().isEmpty()) {
-                CommandUtil.printError(this.errStream, "Invalid project provided",
+                CommandUtil.printError(this.errStream, "Invalid package provided",
                         null, false);
-                CommandUtil.exitError(true);
+                CommandUtil.exitError(this.exit);
             }
             Set<String> allServices = new HashSet<>();
             for (PackageManifest.Tool tool : buildProject.currentPackage().manifest().tools()) {
-                if ("consolidator".equals(tool.type().value())) {
+                if (Util.TOOL_NAME.equals(tool.type().value())) {
                     Set<String> existingServices = Util.getServices(tool.optionsTable());
                     allServices.addAll(existingServices);
                     break;
                 }
             }
-            Collections.addAll(allServices, services);
-            Path balTomlPath = buildProject.sourceRoot().resolve("Ballerina.toml");
+            allServices.addAll(services);
+            Path balTomlPath = buildProject.sourceRoot().resolve(Util.BALLERINA_TOML);
             Util.replaceServicesArrayInToml(allServices, balTomlPath);
 
         } catch (ProjectException e) {
             CommandUtil.printError(this.errStream, "Current directory is not a valid Ballerina package",
                     null, false);
-            CommandUtil.exitError(true);
+            CommandUtil.exitError(this.exit);
         }
-        printStream.println("\nSuccessfully added the services to the project.\n");
-        printStream.println("What's next? \n\t Execute 'bal build' to generate the executable.");
+        outStream.println("\nSuccessfully added the services to the package.\n");
+        outStream.println("What's next?\n\t Execute 'bal build' to generate the executable.");
     }
     @Override
     public String getName() {
-        return "";
+        return Util.TOOL_NAME + HYPHEN + ADD;
     }
 
     @Override

@@ -1,4 +1,4 @@
-# Bundle bal tool
+# Consolidate-package bal tool
 
 Ballerina inherently supports microservices-style deployments, which are well-suited for microservice orchestration platforms like Kubernetes.
 However, many enterprise users deploy on VMs or Docker, where managing each service as a separate process increases complexity and resource overhead. 
@@ -6,49 +6,50 @@ This tool aims to provide a solution tailored to such scenarios by enabling cons
 
 ## Usage
 
-### Create or update a bundle package
+### Create or update a consolidator package
 
-Create a new package and add the bundle tool entry as shown in the below example into the `Ballerina.toml` with the services required to bundle. 
+Create a new package and add the `consolidate-packages` tool entry as shown in the below example into the `Ballerina.toml` with the services required to consolidate. 
 You can add/remove services as needed by updating the values provided for the `options.services` array. The tool will be automatically pulled during
 the package build.
 
 ```toml
 [package]
 org = "myorg"
-name = "bundle"
+name = "consolidator"
 version = "0.1.0"
 
-[[tool.bundle]]
-id = "bundle1"
+[[tool.consolidate-packages]]
+id = "consolidateSvc"
 options.services = ["myorg/svc1", "myorg/svc2"]
 ```
 
-#### Using the `bal bundle` command
-Alternatively, users can install the tool to create and modify the bundle package as shown in the following examples.
+#### Using the CLI tool
+Alternatively, the `consolidate-packages` CLI tool can be installed to create and modify the consolidator package. This
+is typically useful in CI/CD pipelines.
+
+An example is shown below.
 
 ##### Installation
 
-Execute the command below to pull the `bundle` tool from [Ballerina Central](https://central.ballerina.io/ballerina/bundle/latest).
+Execute the command below to pull the tool.
 
 ```bash
-bal tool pull bundle
+bal tool pull consolidate-packages
 ```
 
-Alternatively, users can install the tool and create and modify the bundle package as shown in the following examples.
-
-##### Creating a new bundle package
+##### Creating a new consolidator package
 ```
-$ bal bundle create --services myorg/svc1,myorg/svc2 [--name <package-name>]
+$ bal consolidate-packages new --services myorg/svc1,myorg/svc2 [--name <package-name>]
 ```
 
-##### Adding new services to an existing bundle
+##### Adding new services to an existing package
 ```
-$ bal bundle add --services myorg/svc3,myorg/svc4
+$ bal consolidate-packages add --services myorg/svc3,myorg/svc4
 ```
 
-##### Removing services from an existing bundle
+##### Removing services from an existing package
 ```
-$ bal bundle remove --services myorg/svc2,myorg/svc3
+$ bal consolidate-packages remove --services myorg/svc2,myorg/svc3
 ```
 
 ## Building from the Source

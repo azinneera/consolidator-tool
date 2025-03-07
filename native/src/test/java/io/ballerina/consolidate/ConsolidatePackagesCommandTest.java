@@ -18,23 +18,38 @@
 package io.ballerina.consolidate;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 
 import static io.ballerina.consolidate.TestUtil.getOutput;
-import static io.ballerina.consolidate.TestUtil.printStream;
 import static io.ballerina.consolidate.TestUtil.readOutput;
 import static io.ballerina.consolidate.TestUtil.testResources;
 
-public class ConsolidateCommandTest {
+public class ConsolidatePackagesCommandTest {
+
+    private ByteArrayOutputStream console;
+    private PrintStream printStream;
+
+    @BeforeClass
+    public void setup() {
+        this.console = new ByteArrayOutputStream();
+        this.printStream = new PrintStream(this.console);
+    }
 
     @Test
     public void testHelp() throws IOException {
-        ConsolidateCommand consolidateCommand = new ConsolidateCommand(printStream);
-        consolidateCommand.execute();
-        String buildLog = readOutput();
+        ConsolidatePackagesCommand consolidatePackagesCommand = new ConsolidatePackagesCommand(printStream);
+        try {
+            consolidatePackagesCommand.execute();
+        } catch (Exception e) {
+            Assert.fail("Error occurred while executing the command");
+        }
+        String buildLog = readOutput(console);
         String expected = getOutput(testResources.resolve("command-outputs"), "help-main.txt");
-        Assert.assertTrue(buildLog.contains(expected));
+        Assert.assertTrue(buildLog.contains(expected), "Help text mismatched");
     }
 }

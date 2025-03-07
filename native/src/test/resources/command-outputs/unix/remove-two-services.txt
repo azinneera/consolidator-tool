@@ -1,0 +1,8 @@
+Updating the consolidator package to remove
+	myorg/service3
+	myorg/service4
+
+Successfully removed the services from the package.
+
+What's next?
+	 Execute 'bal build' to generate the executable.
